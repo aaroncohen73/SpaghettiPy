@@ -17,3 +17,28 @@
 #    along with SpaghettiPy.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import os
+import sys
+import fnmatch
+
+import prepare
+
+def main(argc, argv):
+    if argc != 3:
+        print("Usage: %s <Code directory> [Key]" % argv[0])
+        return
+    
+    fileList = []
+    rootDir = argv[1]
+    
+    for root, subFolders, files in os.walk(rootDir):
+        for f in files:
+            fn = os.path.join(root, f)
+            if fnmatch.fnmatch(fn, "*.py"):
+                fileList.append(fn)
+            
+    print fileList
+
+
+if __name__ == "__main__":
+    main(len(sys.argv), sys.argv)
