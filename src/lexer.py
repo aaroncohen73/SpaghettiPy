@@ -17,15 +17,26 @@
 #    along with SpaghettiPy.  If not, see <http://www.gnu.org/licenses/>.                                                     
 #
 
-import types
+from types import Symbol
 
-reservedWords = ["auto", "break", "case", "char", "continue", "default", "do", "double", "else", "entry", "extern", "float", "for", "goto", "if", "int", "long", "register", "return", "short", "sizeof", "static", "struct", "switch", "typedef", "union", "unsigned", "while", "enum", "void", "const", "signed", "volatile"]
+"""
+Identifiers:
+%v = Variable Type
+%c = Conditional
+%f = Flow Control
+%m = Variable Modifier
+%t = Type Declaration
+%l = Loop Delclaration
+%i = Variable Identifier
+"""
 
-reservedNonAlphaOneChar = {";":"End of Statement" "=":"Variable Assignment" "+":"Addition" "-":"Subtraction" "*":"Multiplication/Indirection" "/":"Division" "%":"Modulo" "<":"Less Than" ">":"Greater Than" "!":"Logical Not" "~":"Bitwise Not" "&":"Bitwise And/Memory Reference" "|":"Bitwise Or" "^":"Bitwise Xor" "[":"Right Array Bracket" "]":"Left Array Bracket" ".":"Structure Reference" ",":"Comma" "{":"Begin Code Block" "}":"End Code Block" "(":"Begin grouping" ")":"End Grouping" "?":"Ternary Operator" ":":"Colon"}
+reservedWords = {"auto":"%m", "break":"%f", "case":"%c", "char":"%v", "continue":"%f", "default":"%c", "do":"%l", "double":"%v", "else":"%c", "extern":"%m", "float":"%v", "for":"%l", "goto":"%f", "if":"%c", "int":"%v", "long":"%v", "register":"%m", "return":"%f", "short":"%v", "static":"%m", "struct":"%t", "switch":"%c", "typedef":"%t", "union":"%t", "unsigned":"%v", "while":"%l", "enum":"%t", "void":"%v", "const":"%m", "signed":"%v", "volatile":"%m"}
 
-reservedNonAlphaTwoChar = {"++":"Increment" "--":"Decrement" "==":"Equality Test" "!=":"Inequality Test" ">=":"Greater Than or Equal To" "<=":"Less Than or Equal To" "&&":"Logical And" "||":"Logical Or" "<<":"Bitwise Left Shift" ">>":"Bitwise Right Shift" "+=":"Addition Assignment" "-=":"Subtraction Assignment" "*=":"Multiplication Assignment" "/=":"Division Assignment" "%=":"Modulo Assignment" "&=":"Bitwise And Assignment" "|=":"Bitwise Or Assignment" "^":"Bitwise Xor Assignment" "->":"Structure Dereference"}
+reservedNonAlphaOneChar = {";", "=", "+", "-", "*", "/", "%", "<", ">", "!", "~", "&", "|", "^", "[", "]", ".", ",", "{", "}", "(", ")", "?", ":"}
 
-reservedNonAlphaThreeChar = {"<<=":"Bitwise Left Shift Assignment" ">>=":"Bitwise Right Shift Assignment"}
+reservedNonAlphaTwoChar = {"++", "--", "==", "!=", ">=", "<=", "&&", "||", "<<", ">>", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^", "->"}
+
+reservedNonAlphaThreeChar = {"<<=", ">>="}
      
 def lex(source):
 """
@@ -33,6 +44,7 @@ Lexes the source code to generate symbols for reorganization
 """
     symbols = []
     i = 0
+    
     while source[i] is not None:
         if source[i] is "#": #Tests for macros
             value = ""
@@ -67,28 +79,28 @@ Lexes the source code to generate symbols for reorganization
                 i += 1
 
             if value in reservedWords:
-                kind = "Keyword"
+                kind = reservedWords[value]
             else:
                 kind = "Symbolic Name"
-
+                
             symbols.append(Symbol(kind, value))
 
         elif source[i] + source[i + 1] + source[i + 2] in reservedNonAlphaThreeChar: #Tests for three-character operators
-            kind = reservedNonAlphaThreeChar[source[i] + source[i + 1] + source[i + 2]]
+            kind = "Symbol"
             value = source[i] + source[i + 1] + source[i + 2]
 
             symbols.append(Symbol(kind, value))
             i += 2
             
         elif source[i] + source[i + 1] in reservedNonAlphaTwoChar: #Tests for two-character operators
-            kind = reservedNonAlpha[source[i] + source[i + 1]]
+            kind = "Symbol"
             value = source[i] + source[i + 1]
 
             symbols.append(Symbol(kind, value))
             i += 1
         
         elif source[i] in reservedNonAlphaOneChar: #Tests for one-character operators
-            kind = reservedNonAlpha[source[i]]
+            kind = "Symbol"
             value = source[i]
 
             symbols.append(Symbol(kind, value))
