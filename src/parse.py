@@ -17,8 +17,27 @@
 #    along with SpaghettiPy.  If not, see <http://www.gnu.org/licenses/>.                                             
 #
 
-import types
+from types import Symbol
+from types import Statement
 
-def mangle(statements):
-    
+#Refer to Identifier table in lexer.py
+statementPatterns = {"Variable Initialization":"%v+\s%i"}
+
+def parse(symbols):
+"""
+Parses a list of symbols and returns a list of statements
+"""
+    statements = []
+    i = 0
+    currentLine = 0;
+
+    while symbols[i].kind is not "EOF":
+        if symbols[i].kind is "Macro":
+            statements.append("Macro", symbols[i].value, currentLine)
+            currentLine += 1
+
+        
+
+        i += 1
+   
     

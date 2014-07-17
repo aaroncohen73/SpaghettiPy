@@ -40,7 +40,7 @@ reservedNonAlphaThreeChar = {"<<=", ">>="}
      
 def lex(source):
 """
-Lexes the source code to generate symbols for reorganization
+Lexes the source code to generate symbols and returns a list
 """
     symbols = []
     i = 0
@@ -129,6 +129,7 @@ Lexes the source code to generate symbols for reorganization
             
         i += 1
 
+    symbols.append(Symbol("EOF","End of File"))
     return symbols
                 
             

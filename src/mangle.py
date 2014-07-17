@@ -17,6 +17,6 @@
 #    along with SpaghettiPy.  If not, see <http://www.gnu.org/licenses/>.                                                       
 #
 
-def mangle(lines):
+def mangle(statements):
     
     
