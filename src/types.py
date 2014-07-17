@@ -26,4 +26,11 @@ class Symbol(object):
         self.value = value
 
 class Statement(object):
-    
+    kind = ""
+    plaintext = ""
+    line = 0
+
+    def __init__(self, kind, plaintext, line):
+        self.kind = kind
+        self.plaintext = plaintext
+        self.line = line
