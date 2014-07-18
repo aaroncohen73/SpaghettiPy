@@ -39,5 +39,4 @@ Parses a list of symbols and returns a list of statements
         
 
         i += 1
-   
-    
+
