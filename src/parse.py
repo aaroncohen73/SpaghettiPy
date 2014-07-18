@@ -82,15 +82,23 @@ Parses a list of symbols and returns a list of statements
                 #End if
                 
                 else: #This is either a function declaration or a prototype
-                    j += 1
+                    j += 2
+                    lcount = 1
 
-                    while symbols[j].value is not ")":
+                    statement.append(" (")
+                    
+                    while lcount is not 0:
                         statement.append(" " + symbols[j].value)
+                        if symbols[j].value is "(":
+                            lcount += 1
+                        #End if
+                            
+                        elif symbols[j].value is ")":
+                            lcount -= 1
+                        #End elif
+                            
                         j += 1
                     #End while
-
-                    statement.append(" " + symbols[j].value)
-                    j += 1
 
                     if symbols[j].value is ";": #This is a function prototype
                         statements.append(Statement("Function Prototype", statement, currentLine))
@@ -135,6 +143,110 @@ Parses a list of symbols and returns a list of statements
             
         #End elif
 
+        elif symbols[i].kind is "$i": #This is a reassignment, function call, or struct member access call
+            #Stuff
+        #end elif
+
+        elif symbols[i].kind is "$l": #This is the beginning of a loop
+            statement = ""
+            
+            if symbols[i].value is not "do": #Because "do" takes no arguments, but while does
+                statement = symbols[i].value
+                i += 1
+                statement.append(" " + symbols[i].value) #The left parenthesis
+                i += 1
+
+                lcount = 1
+
+                while lcount is not 0:
+                    statement.append(" " + symbols[i].value)
+                    if symbols[i].value is "(":
+                        lcount += 1
+                    #End if
+                        
+                    elif symbols[i].value is ")":
+                        lcount -= 1
+                    #End elif
+                        
+                    i += 1
+                #End while
+            #End if
+            
+            else: #If it is a do-while loop
+                statement = symbols[i].value
+            #End else
+                
+            statements.append(Statement("Loop Declaration", statement, currentLine))
+            currentLine += 1
+        #end elif
+
+        elif symbols[i].kind is "$c": #This is a conditional branching statement
+            if symbols[i].value is "case":
+                statement = symbols[i : i + 2].value.join(" ")
+                i += 2
+            #End if
+
+            elif symbols[i].value is "else":
+                statement = symbols[i].value
+            #End elif
+
+            else:
+                statement = symbols[i].value
+                i += 1
+                statement.append(" " + symbols[i].value)
+                i += 1
+
+                lcount = 1
+
+                while lcount is not 0:
+                    statement.append(" " + symbols[i].value)
+                    if symbols[i].value is "(":
+                        lcount += 1
+                    #End if
+                        
+                    elif symbols[i].value is ")":
+                        lcount -= 1
+                    #End elif
+                        
+                    i += 1
+                #End while
+
+            #End else
+                
+            statements.append(Statement("Conditional Branching Statement", statement, currentLine))
+
+            currentLine += 1
+                
+        #end elif
+
+        elif symbols[i].kind is "$f": #This is a flow control statement
+            statement = symbols[i].value
+            
+            if symbols[i].value is "goto" or symbols[i].value is "return":
+                i += 1
+                while symbols[i].value is not ";":
+                    statement.append(" " + symbols[i].value)
+                    i += 1
+                #End while
+
+                statement.append(symbols[i].value)
+                
+            #End if
+            else:
+                i += 1
+                statement.append(symbols[i].value)
+            #End else
+
+            statements.append(Statement("Flow Control Statement", statement, currentLine))
+            currentLine += 1
+        #end elif
+
+        elif symbols[i].kind is "$t": #This is a type declaration
+            
+        #end elif
+
+        
+        
         i += 1
     #End while
 #End def parse(symbols):

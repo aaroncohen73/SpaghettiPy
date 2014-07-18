@@ -51,7 +51,7 @@ variableNameConventionsNthLetter = "[A-Za-z0-9_]"
 
 numberConventionsFirstDigit = "[0-9]"
 
-numberConventionsNthDigit = "[0-9a-fA-FxfuUlL]"
+numberConventionsNthDigit = "[0-9a-fA-FxuUlL]"
      
 def lex(source):
 """
