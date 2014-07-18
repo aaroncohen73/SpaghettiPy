@@ -43,7 +43,7 @@ reservedNonAlphaOneChar = [";", "=", "+", "-", "*", "/", "%", "<", ">", "!", "~"
 
 reservedNonAlphaTwoChar = ["++", "--", "==", "!=", ">=", "<=", "&&", "||", "<<", ">>", "+=", "-=", "*=", "/=", "%=", "&=", "|=", "^", "->"]
 
-reservedNonAlphaThreeChar = ["<<=", ">>="]
+reservedNonAlphaThreeChar = ["<<=", ">>=", "..."]
 
 variableNameConventionsFirstLetter = "[A-Za-z_]"
 

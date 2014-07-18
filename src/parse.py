@@ -20,23 +20,122 @@
 from types import Symbol
 from types import Statement
 
-#Refer to Identifier table in lexer.py
-statementPatterns = {"Variable Initialization":"%v+\s%i"}
-
 def parse(symbols):
 """
 Parses a list of symbols and returns a list of statements
 """
-    statements = []
-    i = 0
-    currentLine = 0;
+    statements = [] #List of statements to return
+    i = 0 #Index in the list of statements
+    currentLine = 0; #Current line number (Separates each statement onto a separate line
 
     while symbols[i].kind is not "EOF":
-        if symbols[i].kind is "Macro":
-            statements.append("Macro", symbols[i].value, currentLine)
+        if symbols[i].kind is "Macro": #Statement is a macro
+            statements.append(Statement("Macro", symbols[i].value, currentLine))
             currentLine += 1
+        #End if
 
-        
+        elif symbols[i].kind is "$v": #Either a variable declaration/initialization, a function pointer, or a function declaration
+            j = i #Index in the declaration statement
+            statement = symbols[j].value #The statement being created (Plaintext)
+            j += 1
+            
+            while symbols[j].kind is "$v" or symbols[j].value is "*":
+                statement.append(" " + symbols[j].value)
+                j += 1
+            #End while
+
+            if symbols[j].kind is "$i": #This is a variable declaration and/or initialization
+                i = j #Saving the symbolic name just in case this is a function pointer
+                statement.append(" " + symbols[j].value)
+                if symbols[j + 1].value is not "(":
+                    statements.append(Statement("Variable Declaration", statement + ";", currentLine))
+                        
+                    if symbols[j + 1].value is "=": #Separates the variable declaraction and initializations onto separate lines
+                        currentLine += 1
+                        
+                        statement = symbols[j].value + " ="  #The statement being created (Plaintext)
+                        k = j + 2 #Index in the initialization statement
+
+                        initStatements = [] #For fixing the ordering issue in multiple initialization
+                        
+                        while symbols[k].value is not ";":
+                            if symbols[k].value is "=": #In the case of variable = variable2 = 3
+                                initStatements.append(Statement("Variable Initialization", statement + ";", currentLine))
+                                currentLine += 1 #Not in the right order. Fix later.
+                                statement = symbols[k - 1].value + " ="
+                            #End if
+                            
+                            statement.append(" " + symbols[k].value());
+                            k += 1
+                        #End while
+
+                        statement += symbols[k]
+                        initStatements.append(Statement("Variable Initialization", statement, currentLine))
+                        currentLine += 1
+                        statements.append(initStatements.reverse()) #Putting multiple initializations on the correct lines
+                        i = k
+                    #End if
+                        
+                    else:
+                        i = j + 1
+                    #End else
+                #End if
+                
+                else: #This is either a function declaration or a prototype
+                    j += 1
+
+                    while symbols[j].value is not ")":
+                        statement.append(" " + symbols[j].value)
+                        j += 1
+                    #End while
+
+                    statement.append(" " + symbols[j].value)
+                    j += 1
+
+                    if symbols[j].value is ";": #This is a function prototype
+                        statements.append(Statement("Function Prototype", statement, currentLine))
+                        currentLine += 1
+                    #End if
+                    
+                    else: #This is a function declaration (We will use the code block later
+                        statements.append(Statement("Function Declaration", statement, currentLine))
+                        currentLine += 1
+                    #End else
+
+                    i = j
+                        
+                #End else
+                
+            #End if
+
+            elif symbols[j].value is "(": #This is a function pointer
+                while symbols[j].value is not ";" and symbols[j].value is not "=":
+                    statement.append(" ", symbols[j].value)
+                    j += 1
+                #End while
+
+                statements.append(Statement("Function Pointer Declaration", statement + ";", currentLine))
+                currentLine += 1
+
+                if symbols[j].value is "=": #The pointer is initialized in the same statement
+                    statement = symbols[i].value + " =" #Using i for two things at once
+                    j += 1
+
+                    while symbols[j].value is not ";":
+                        statement.append(" " + symbols[j].value)
+                        j += 1
+                    #End while
+
+                    statements.append(Statement("Function Pointer Initialization", statement, currentLine))
+                    currentLine += 1
+                    i = j
+                #End if
+                
+            #End elif
+            
+        #End elif
 
         i += 1
+    #End while
+#End def parse(symbols):
 
