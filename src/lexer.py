@@ -64,12 +64,11 @@ Lexes the source code to generate symbols and returns a list
         if source[i] is "#": #Tests for macros
             value = ""
             
-            while i is not "\n":
+            while source[i] is not "\n" and source[i - 1] is not "\\":
                 value.append(source[i])
                 i += 1
             #End while
 
-            #Still need to implement multiline macros
             symbols.append(Symbol("$m", value))
         #End if
             
@@ -149,10 +148,27 @@ Lexes the source code to generate symbols and returns a list
             i += 2
         #End elif
 
-        elif re.match("\s", source[i] is not None: #Ignore whitespace
-            pass
+        elif re.match("\s", source[i]) is not None: #Ignore whitespace
+            while re.match("\s", source[i]) is not None:
+                i += 1
+            #End while
+                
         #End elif
-            
+
+        elif source[i : i + 1] is "//":
+            while source[i] is not "\n":
+                i += 1
+            #End while
+                
+        #End elif
+
+        elif source[i : i + 1] is "/*":
+            while source[i - 1 : i] is not "*/":
+                i += 1
+            #End while
+
+        #End elif
+                    
         else: #If all else fails
             print("Error: Unrecognized Symbol!")
             return None

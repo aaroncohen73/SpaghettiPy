@@ -144,7 +144,29 @@ Parses a list of symbols and returns a list of statements
         #End elif
 
         elif symbols[i].kind is "$i": #This is a reassignment, function call, or struct member access call
-            #Stuff
+            statement = ""
+            kind = ""
+            j = 1
+
+            while symbols[i + j].value is not "=":
+                if symbols[i + j].value is ";":
+                    kind = "Function Call"
+                    break
+                j += 1
+            #End while
+            
+            if kind is "":
+                kind = "Variable Reassignment"
+            #End if
+            
+            while symbols[i].value is not ";":
+                statement.append(symbols[i].value)
+                i += 1
+            #End while
+
+            statement.append(";")
+            statements.append(Statement(kind, statement, currentLine))
+            currentLine += 1
         #end elif
 
         elif symbols[i].kind is "$l": #This is the beginning of a loop
@@ -216,7 +238,6 @@ Parses a list of symbols and returns a list of statements
             statements.append(Statement("Conditional Branching Statement", statement, currentLine))
 
             currentLine += 1
-                
         #end elif
 
         elif symbols[i].kind is "$f": #This is a flow control statement
@@ -230,8 +251,8 @@ Parses a list of symbols and returns a list of statements
                 #End while
 
                 statement.append(symbols[i].value)
-                
             #End if
+            
             else:
                 i += 1
                 statement.append(symbols[i].value)
@@ -242,10 +263,62 @@ Parses a list of symbols and returns a list of statements
         #end elif
 
         elif symbols[i].kind is "$t": #This is a type declaration
+            statement = ""
             
+            if symbols[i].value is "typedef":
+                statement.append(symbols[i].value)
+                i += 1
+            #End if
+
+            while symbols[i].value is not "}":
+                statement.append(" " + symbols[i].value)
+                i += 1
+            #End while
+
+            while symbols[i].value is not ";":
+                statement.append(" " + symbols[i].value)
+                i += 1
+            #End while
+
+            statement.append(";")
+            statements.append(Statement("Type Definition", statement, currentLine))
+            currentLine += 1
         #end elif
 
-        
+        elif symbols[i].value is "{":
+            statement = symbols[i].value
+            i += 1
+            lbrace = 1
+
+            while lbrace > 0:
+                statement.append(symbols[i].value)
+                if symbols[i].value is "{":
+                    lbrace += 1
+                #End if
+
+                elif symbols[i].value is "}":
+                    lbrace -= 1
+                #End elif
+
+                i += 1
+            #End while
+
+            statements.append(Statement("Code block", statement, currentLine))
+            currentLine += 1
+        #End elif
+
+        else: #If nothing else matches, just scan to the next semicolon and hope it works
+            statement = symbols[i].value
+            i += 1
+            
+            while symbols[i].value is not ";":
+                statement.append(" " + symbols[i].value)
+                i += 1
+            #End while
+
+            statement.append(";")
+            statements.append(Statement("Miscellanious (See plaintext)", statement, currentLine))
+            currentLine += 1
         
         i += 1
     #End while
