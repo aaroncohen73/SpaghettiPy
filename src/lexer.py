@@ -17,9 +17,15 @@
 #    along with SpaghettiPy.  If not, see <http://www.gnu.org/licenses/>.                                                     
 #
 
-from types import Symbol
-
 import re
+
+class Symbol(object):
+    kind = ""
+    value = ""
+
+    def __init__(self, kind, value):
+        self.kind = kind
+        self.value = value
 
 """
 Identifiers:
@@ -54,9 +60,9 @@ numberConventionsFirstDigit = "[0-9]"
 numberConventionsNthDigit = "[0-9a-fA-FxuUlL]"
      
 def lex(source):
-"""
+    """
 Lexes the source code to generate symbols and returns a list
-"""
+    """
     symbols = []
     i = 0
     
@@ -64,8 +70,12 @@ Lexes the source code to generate symbols and returns a list
         if source[i] is "#": #Tests for macros
             value = ""
             
-            while source[i] is not "\n" and source[i - 1] is not "\\":
-                value.append(source[i])
+            while True:
+                if "\n" in value and source[i] is not "\\":
+                    break
+                #End if
+                
+                value += source[i]
                 i += 1
             #End while
 
@@ -78,7 +88,7 @@ Lexes the source code to generate symbols and returns a list
             i += 1
 
             while re.match(numberConventionsNthDigit, source[i]) is not None:
-                value.append(source[i])
+                value += source[i]
                 i += 1
             #End while
                 
@@ -90,7 +100,7 @@ Lexes the source code to generate symbols and returns a list
             value = source[i]
 
             while re.match(variableNameConventionsNthLetter, source[i]) is not None:
-                value.append(source[i])
+                value += source[i]
                 i += 1
             #End while
 
@@ -104,17 +114,17 @@ Lexes the source code to generate symbols and returns a list
             symbols.append(Symbol(kind, value))
         #End elif
             
-        elif source[i, i + 2] in reservedNonAlphaThreeChar: #Tests for three-character operators
+        elif source[i : i + 2] in reservedNonAlphaThreeChar: #Tests for three-character operators
             kind = "$o"
-            value = source[i, i + 2]
+            value = source[i : i + 2]
 
             symbols.append(Symbol(kind, value))
             i += 2
         #End elif
             
-        elif source[i, i + 1] in reservedNonAlphaTwoChar: #Tests for two-character operators
+        elif source[i : i + 1] in reservedNonAlphaTwoChar: #Tests for two-character operators
             kind = "$o"
-            value = source[i, i + 1]
+            value = source[i : i + 1]
 
             symbols.append(Symbol(kind, value))
             i += 1
@@ -133,7 +143,7 @@ Lexes the source code to generate symbols and returns a list
             
             i += 1
             while source[i] is not "\"":
-                value.append(source[i])
+                value += source[i]
                 i += 1
             #End while
 

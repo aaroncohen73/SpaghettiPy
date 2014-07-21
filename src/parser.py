@@ -17,20 +17,31 @@
 #    along with SpaghettiPy.  If not, see <http://www.gnu.org/licenses/>.                                             
 #
 
-from types import Symbol
-from types import Statement
+import lexer
+
+Symbol = lexer.Symbol
+
+class Statement(object):
+    kind = ""
+    plaintext = ""
+    line = 0
+
+    def __init__(self, kind, plaintext, line):
+        self.kind = kind
+        self.plaintext = plaintext
+        self.line = line
 
 def parse(symbols):
-"""
+    """
 Parses a list of symbols and returns a list of statements
-"""
+    """
     statements = [] #List of statements to return
     i = 0 #Index in the list of statements
     currentLine = 0; #Current line number (Separates each statement onto a separate line
 
     while symbols[i].kind is not "EOF":
         if symbols[i].kind is "Macro": #Statement is a macro
-            statements.append(Statement("Macro", symbols[i].value, currentLine))
+            statements.append(types.Statement("Macro", symbols[i].value, currentLine))
             currentLine += 1
         #End if
 
@@ -40,7 +51,7 @@ Parses a list of symbols and returns a list of statements
             j += 1
             
             while symbols[j].kind is "$v" or symbols[j].value is "*":
-                statement.append(" " + symbols[j].value)
+                statement += " " + symbols[j].value
                 j += 1
             #End while
 
@@ -48,7 +59,7 @@ Parses a list of symbols and returns a list of statements
                 i = j #Saving the symbolic name just in case this is a function pointer
                 statement.append(" " + symbols[j].value)
                 if symbols[j + 1].value is not "(":
-                    statements.append(Statement("Variable Declaration", statement + ";", currentLine))
+                    statements.append(types.Statement("Variable Declaration", statement + ";", currentLine))
                         
                     if symbols[j + 1].value is "=": #Separates the variable declaraction and initializations onto separate lines
                         currentLine += 1
@@ -60,7 +71,7 @@ Parses a list of symbols and returns a list of statements
                         
                         while symbols[k].value is not ";":
                             if symbols[k].value is "=": #In the case of variable = variable2 = 3
-                                initStatements.append(Statement("Variable Initialization", statement + ";", currentLine))
+                                initStatements.append(types.Statement("Variable Initialization", statement + ";", currentLine))
                                 currentLine += 1 #Not in the right order. Fix later.
                                 statement = symbols[k - 1].value + " ="
                             #End if
@@ -70,7 +81,7 @@ Parses a list of symbols and returns a list of statements
                         #End while
 
                         statement += symbols[k]
-                        initStatements.append(Statement("Variable Initialization", statement, currentLine))
+                        initStatements.append(types.Statement("Variable Initialization", statement, currentLine))
                         currentLine += 1
                         statements.append(initStatements.reverse()) #Putting multiple initializations on the correct lines
                         i = k
@@ -101,12 +112,12 @@ Parses a list of symbols and returns a list of statements
                     #End while
 
                     if symbols[j].value is ";": #This is a function prototype
-                        statements.append(Statement("Function Prototype", statement, currentLine))
+                        statements.append(types.Statement("Function Prototype", statement, currentLine))
                         currentLine += 1
                     #End if
                     
                     else: #This is a function declaration (We will use the code block later
-                        statements.append(Statement("Function Declaration", statement, currentLine))
+                        statements.append(types.Statement("Function Declaration", statement, currentLine))
                         currentLine += 1
                     #End else
 
@@ -122,7 +133,7 @@ Parses a list of symbols and returns a list of statements
                     j += 1
                 #End while
 
-                statements.append(Statement("Function Pointer Declaration", statement + ";", currentLine))
+                statements.append(types.Statement("Function Pointer Declaration", statement + ";", currentLine))
                 currentLine += 1
 
                 if symbols[j].value is "=": #The pointer is initialized in the same statement
@@ -134,7 +145,7 @@ Parses a list of symbols and returns a list of statements
                         j += 1
                     #End while
 
-                    statements.append(Statement("Function Pointer Initialization", statement, currentLine))
+                    statements.append(types.Statement("Function Pointer Initialization", statement, currentLine))
                     currentLine += 1
                     i = j
                 #End if
@@ -165,7 +176,7 @@ Parses a list of symbols and returns a list of statements
             #End while
 
             statement.append(";")
-            statements.append(Statement(kind, statement, currentLine))
+            statements.append(types.Statement(kind, statement, currentLine))
             currentLine += 1
         #end elif
 
@@ -198,7 +209,7 @@ Parses a list of symbols and returns a list of statements
                 statement = symbols[i].value
             #End else
                 
-            statements.append(Statement("Loop Declaration", statement, currentLine))
+            statements.append(types.Statement("Loop Declaration", statement, currentLine))
             currentLine += 1
         #end elif
 
@@ -235,7 +246,7 @@ Parses a list of symbols and returns a list of statements
 
             #End else
                 
-            statements.append(Statement("Conditional Branching Statement", statement, currentLine))
+            statements.append(types.Statement("Conditional Branching Statement", statement, currentLine))
 
             currentLine += 1
         #end elif
@@ -258,7 +269,7 @@ Parses a list of symbols and returns a list of statements
                 statement.append(symbols[i].value)
             #End else
 
-            statements.append(Statement("Flow Control Statement", statement, currentLine))
+            statements.append(types.Statement("Flow Control Statement", statement, currentLine))
             currentLine += 1
         #end elif
 
@@ -281,7 +292,7 @@ Parses a list of symbols and returns a list of statements
             #End while
 
             statement.append(";")
-            statements.append(Statement("Type Definition", statement, currentLine))
+            statements.append(types.Statement("Type Definition", statement, currentLine))
             currentLine += 1
         #end elif
 
@@ -303,7 +314,7 @@ Parses a list of symbols and returns a list of statements
                 i += 1
             #End while
 
-            statements.append(Statement("Code block", statement, currentLine))
+            statements.append(types.Statement("Code block", statement, currentLine))
             currentLine += 1
         #End elif
 
@@ -317,7 +328,7 @@ Parses a list of symbols and returns a list of statements
             #End while
 
             statement.append(";")
-            statements.append(Statement("Miscellanious (See plaintext)", statement, currentLine))
+            statements.append(types.Statement("Miscellanious (See plaintext)", statement, currentLine))
             currentLine += 1
         
         i += 1

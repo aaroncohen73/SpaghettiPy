@@ -17,6 +17,10 @@
 #    along with SpaghettiPy.  If not, see <http://www.gnu.org/licenses/>.                                                       
 #
 
-def mangle(statements):
+def mangle_easy(statements):
     
-    
+#End mangle_easy(statements)
+
+def mangle_hard(statements):
+    pass
+#End mangle_hard(statements):
