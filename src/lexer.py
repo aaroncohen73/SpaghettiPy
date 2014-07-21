@@ -26,6 +26,7 @@ class Symbol(object):
     def __init__(self, kind, value):
         self.kind = kind
         self.value = value
+#End class Symbol
 
 """
 Identifiers:
@@ -65,127 +66,145 @@ Lexes the source code to generate symbols and returns a list
     """
     symbols = []
     i = 0
-    
-    while source[i] is not None:
-        if source[i] is "#": #Tests for macros
-            value = ""
-            
-            while True:
-                if "\n" in value and source[i] is not "\\":
-                    break
-                #End if
-                
-                value += source[i]
-                i += 1
-            #End while
 
-            symbols.append(Symbol("$m", value))
-        #End if
-            
-        elif re.match(numberConventionsFirstDigit, source[i]) is not None: #Tests for numbers
-            kind = "$n"
-            value = source[i]
-            i += 1
+    try:
+        while True:
+            if source[i] is "#": #Tests for macros
+                value = ""
 
-            while re.match(numberConventionsNthDigit, source[i]) is not None:
-                value += source[i]
-                i += 1
-            #End while
-                
-            symbols.append(Symbol(kind, value))
-        #End elif
-        
-        elif re.match(variableNameConventionsFirstLetter, source[i]) is not None: #Tests for keywords
-            kind = ""
-            value = source[i]
+                while True:
+                    if "\n" in value and source[i] is not "\\":
+                        break
+                    #End if
 
-            while re.match(variableNameConventionsNthLetter, source[i]) is not None:
-                value += source[i]
-                i += 1
-            #End while
+                    value += source[i]
+                    i += 1
+                #End while
 
-            if value in reservedWords:
-                kind = reservedWords[value]
+                symbols.append(Symbol("$m", value))
             #End if
-            else: #if value in reservedWords:
-                kind = "$i"
+
+            elif re.match(numberConventionsFirstDigit, source[i]): #Tests for numbers
+                kind = "$n"
+                value = source[i]
+
+                while re.match(numberConventionsNthDigit, source[i + 1]):
+                    i += 1
+                    value += source[i]
+                #End while
+
+                symbols.append(Symbol(kind, value))
+            #End elif
+
+            elif re.match(variableNameConventionsFirstLetter, source[i]): #Tests for keywords
+                kind = ""
+                value = source[i]
+
+                while re.match(variableNameConventionsNthLetter, source[i + 1]):
+                    i += 1
+                    value += source[i]
+                #End while
+                
+                if value in reservedWords:
+                    kind = reservedWords[value]
+                #End if
+                else: #if value in reservedWords:
+                    kind = "$i"
+                #End else
+
+                symbols.append(Symbol(kind, value))
+            #End elif
+
+            elif source[i : i + 2] in reservedNonAlphaThreeChar: #Tests for three-character operators
+                kind = "$o"
+                value = source[i : i + 2]
+
+                symbols.append(Symbol(kind, value))
+                i += 2
+            #End elif
+
+            elif source[i : i + 1] in reservedNonAlphaTwoChar: #Tests for two-character operators
+                kind = "$o"
+                value = source[i : i + 1]
+
+                symbols.append(Symbol(kind, value))
+                i += 1
+            #End elif
+
+            elif source[i] in reservedNonAlphaOneChar: #Tests for one-character operators
+                kind = "$o"
+                value = source[i]
+
+                symbols.append(Symbol(kind, value))
+            #End elif
+
+            elif source[i] is '"': #Tests for string literals
+                kind = "$s"
+                value = ""
+
+                i += 1
+                while source[i] is not '"':
+                    value += source[i]
+                    i += 1
+                #End while
+
+                symbols.append(Symbol(kind, value))
+            #End elif
+
+            elif source[i] is "'": #Tests for character literals
+                kind = "$b"
+                value = source[i + 1]
+
+                symbols.append(Symbol(kind, value))
+                i += 2
+            #End elif
+
+            elif re.match("\s", source[i]) and source[i] is not "\0": #Ignore whitespace
+                while True:
+                    i += 1
+
+                    try:
+                        if not re.match("\s", source[i]):
+                            i -= 1
+                            break
+                        #End if
+
+                    #End try
+
+                    except IndexError:
+                        break
+                    #End except
+
+                #End while
+
+            #End elif
+
+            elif source[i : i + 1] is "//":
+                while source[i] is not "\n":
+                    i += 1
+                #End while
+
+            #End elif
+
+            elif source[i : i + 1] is "/*":
+                while source[i - 1 : i] is not "*/":
+                    i += 1
+                #End while
+
+            #End elif
+
+            else: #If all else fails
+                print("Error: Unrecognized Symbol %s!" % source[i])
+                return None
             #End else
-                
-            symbols.append(Symbol(kind, value))
-        #End elif
-            
-        elif source[i : i + 2] in reservedNonAlphaThreeChar: #Tests for three-character operators
-            kind = "$o"
-            value = source[i : i + 2]
-
-            symbols.append(Symbol(kind, value))
-            i += 2
-        #End elif
-            
-        elif source[i : i + 1] in reservedNonAlphaTwoChar: #Tests for two-character operators
-            kind = "$o"
-            value = source[i : i + 1]
-
-            symbols.append(Symbol(kind, value))
             i += 1
-        #End elif
-        
-        elif source[i] in reservedNonAlphaOneChar: #Tests for one-character operators
-            kind = "$o"
-            value = source[i]
+        #End while
 
-            symbols.append(Symbol(kind, value))
-        #End elif
+    #End try
 
-        elif source[i] is "\"": #Tests for string literals
-            kind = "$s"
-            value = ""
-            
-            i += 1
-            while source[i] is not "\"":
-                value += source[i]
-                i += 1
-            #End while
-
-            symbols.append(Symbol(kind, value))
-        #End elif
-
-        elif source[i] is "\'": #Tests for character literals
-            kind = "$b"
-            value = source[i + 1]
-
-            symbols.append(Symbol(kind, value))
-            i += 2
-        #End elif
-
-        elif re.match("\s", source[i]) is not None: #Ignore whitespace
-            while re.match("\s", source[i]) is not None:
-                i += 1
-            #End while
-                
-        #End elif
-
-        elif source[i : i + 1] is "//":
-            while source[i] is not "\n":
-                i += 1
-            #End while
-                
-        #End elif
-
-        elif source[i : i + 1] is "/*":
-            while source[i - 1 : i] is not "*/":
-                i += 1
-            #End while
-
-        #End elif
-                    
-        else: #If all else fails
-            print("Error: Unrecognized Symbol!")
-            return None
-        #End else
-            
-        i += 1
-    #End while
+    except IndexError:
+        print("Finished!")
+    #End except
 
     symbols.append(Symbol("EOF","End of File"))
     return symbols
