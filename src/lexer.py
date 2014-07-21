@@ -67,13 +67,15 @@ Lexes the source code to generate symbols and returns a list
     symbols = []
     i = 0
 
+    source += "\n\n\n\n\n" #Buffering the end a little
+
     try:
         while True:
-            if source[i] is "#": #Tests for macros
+            if source[i] == "#": #Tests for macros
                 value = ""
 
                 while True:
-                    if "\n" in value and source[i] is not "\\":
+                    if "\n" in value and source[i] != "\\":
                         break
                     #End if
 
@@ -83,6 +85,27 @@ Lexes the source code to generate symbols and returns a list
 
                 symbols.append(Symbol("$m", value))
             #End if
+
+            elif source[i] + source[i + 1] == "//":
+                buf = ""
+                while True:
+                    i += 1
+                    buf += source[i]
+                    if "\n" in buf:
+                        break
+                    #End if
+                    
+                #End while
+
+            #End elif
+
+            elif source[i] + source[i + 1] == "/*":
+                i += 2
+                while source[i - 1] + source[i] != "*/":
+                    i += 1
+                #End while
+
+            #End elif
 
             elif re.match(numberConventionsFirstDigit, source[i]): #Tests for numbers
                 kind = "$n"
@@ -115,17 +138,17 @@ Lexes the source code to generate symbols and returns a list
                 symbols.append(Symbol(kind, value))
             #End elif
 
-            elif source[i : i + 2] in reservedNonAlphaThreeChar: #Tests for three-character operators
+            elif source[i] + source[i + 1] + source[i + 2] in reservedNonAlphaThreeChar: #Tests for three-character operators
                 kind = "$o"
-                value = source[i : i + 2]
+                value = source[i] + source[i + 1] + source[i + 2]
 
                 symbols.append(Symbol(kind, value))
                 i += 2
             #End elif
 
-            elif source[i : i + 1] in reservedNonAlphaTwoChar: #Tests for two-character operators
+            elif source[i] + source[i + 1] in reservedNonAlphaTwoChar: #Tests for two-character operators
                 kind = "$o"
-                value = source[i : i + 1]
+                value = source[i] + source[i + 1]
 
                 symbols.append(Symbol(kind, value))
                 i += 1
@@ -138,12 +161,12 @@ Lexes the source code to generate symbols and returns a list
                 symbols.append(Symbol(kind, value))
             #End elif
 
-            elif source[i] is '"': #Tests for string literals
+            elif source[i] == '"': #Tests for string literals
                 kind = "$s"
                 value = ""
 
                 i += 1
-                while source[i] is not '"':
+                while source[i] != '"':
                     value += source[i]
                     i += 1
                 #End while
@@ -151,7 +174,7 @@ Lexes the source code to generate symbols and returns a list
                 symbols.append(Symbol(kind, value))
             #End elif
 
-            elif source[i] is "'": #Tests for character literals
+            elif source[i] == "'": #Tests for character literals
                 kind = "$b"
                 value = source[i + 1]
 
@@ -159,7 +182,7 @@ Lexes the source code to generate symbols and returns a list
                 i += 2
             #End elif
 
-            elif re.match("\s", source[i]) and source[i] is not "\0": #Ignore whitespace
+            elif re.match("\s", source[i]) and source[i] != "\0": #Ignore whitespace
                 while True:
                     i += 1
 
@@ -179,20 +202,6 @@ Lexes the source code to generate symbols and returns a list
 
             #End elif
 
-            elif source[i : i + 1] is "//":
-                while source[i] is not "\n":
-                    i += 1
-                #End while
-
-            #End elif
-
-            elif source[i : i + 1] is "/*":
-                while source[i - 1 : i] is not "*/":
-                    i += 1
-                #End while
-
-            #End elif
-
             else: #If all else fails
                 print("Error: Unrecognized Symbol %s!" % source[i])
                 return None
@@ -203,7 +212,7 @@ Lexes the source code to generate symbols and returns a list
     #End try
 
     except IndexError:
-        print("Finished!")
+        print("Finished lexing")
     #End except
 
     symbols.append(Symbol("EOF","End of File"))
