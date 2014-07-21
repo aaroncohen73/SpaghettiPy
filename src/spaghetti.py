@@ -18,9 +18,11 @@
 #
 
 import sys
+import hashlib
 
 import lexer
 import parser
+import mangler
 
 def main(argc, argv):
     if argc != 3:
@@ -30,9 +32,12 @@ def main(argc, argv):
     
     sourceFile = open(argv[1], "r")
     source = sourceFile.read()
-    statements = parser.parse(lexer.lex(source))
+    symbols = lexer.lex(source)
+    statements = parser.parse(symbols)
 
-    print(statements[0].plaintext)
+    key = hashlib.md5(argv[2]).digest
+
+    mangledStatements = mangler.mangle_hard(statements, key)
 
 #End def main(argc, argv)
 
