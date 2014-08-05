@@ -1,5 +1,5 @@
-#                                                                                                                  
-#    Copyright (C) Aaron Cohen                                                                                              
+#
+#    Copyright (C) 2014 Aaron Cohen                                                                                              
 #                                                                                                                             
 #    This file is part of SpaghettiPy.                                                                                     
 #                                                                                                                            
@@ -17,126 +17,113 @@
 #    along with SpaghettiPy.  If not, see <http://www.gnu.org/licenses/>.                                                       
 #
 
+#Begin imports
+
 import random
 
 import parser
 
-class Function:
-    func_id = 0
-    declaration = None
-    subdivisions = []
+#End imports
 
-    def __init__(self, declaration, subdivisions):
-        self.declaration = declaration
-        self.subdivisions = subdivisions
-#End class Function
-        
-class Loop:
-    pass
-#End class Loop
-        
-class Subdivision:
-    sub_id = 0
-    location = 0
-    next_sub = 0
-    lines = []
-
-    def __init__(self, lines):
-        self.lines = lines
+class Subdivision(object):
+    statements = []
+    subID = -1
+    nextSub = None
 #End class Subdivision
+
+class Block(object):
+    declaration = None
+    statements = []
+    subdivisions = []
+    children = []
+    parent = None
+    level = -1
+    blockID = -1
+    beginning = 0
+    end = 0
+#End class Block
+
+def findBlocks(statements, currentStatement, currentLevel):
+    block = Block()
+    block.level = currentLevel
+    block.beginning = currentStatement
+
+    if currentLevel > 0:
+        block.declaration = statements[currentStatement - 2]
+    #End if
+    
+    while True:
+        if statements[currentStatement] == "Begin Code Block":
+            block.children.append(findBlocks(statements, currentStatement + 1, currentLevel + 1))
+            block.children[-1].parent = block
+            currentStatement = block.children[-1].end + 1
+        #End if
+
+        elif statements[currentStatement] == "End Code Block" or currentStatement == len(statements):
+            block.end = currentStatement
+            return block
+        #End elif
+
+        block.statements.append(statements[currentStatement++])
+    #End while
         
+#End findBlocks(statements, currentStatement, currentLevel, blocksSoFar):
+
 """
 Overview:
-1) Take all variables and type definitions and make them global
-2) Make the key the random seed and assign each sub-list a number using the pseudo-random number generator
-3) Give each function a number from the generator
-4) "Straighten" the loops and conditionals by turning them into a series of subdivisions linked by pseudo-random numbers
-5) Turn all other statements into subdivisions of no more than two lines each, and link them
-6) Determine each subdivision's final place in the switch statement by multiplying their ID with that of their function
-7) In the rare case of a collision, keep adding one until there is no longer a collision
-8) Print it all into a single switch statement in one function
+1) Make the key the random seed
+2) Put all variable declarations and function pointers into a new list, and remove prototypes
+3) Turn the statements into blocks of code
+4) Turn the code inside the blocks into subdivisions of two statements each
+5) Generate the boilerplate code to make constructs such as conditionals work.
+6) Give each subdivision and block a random ID
+7) Check for collisions (NOTE: Boilerplate can take up several IDs)
+8) Link each subdivision and block to the next
+9) Turn the boilerplate for the blocks into regular subdivisions and link those appropriately
+10) Rename all the variables after their original scope (Ex: variablename__global or variablename__function1__for__2)
+11) Give all external functions their own IDs and make calls to them subdivisions
+12) Change all function pointers to their IDs
 """
-def mangle_hard(statements, key):
+def mangle(statements, key):
     #Various lists for use later
 
     variables = []
+    
+    functionPointers = []
 
-    functions = []
-
+    globalBlock
+    
     newStatements = []
     
     #Step 1
 
-    for statement in statements:
-        if statement.kind in ["Variable Declaration", "Function Pointer Declaration", "Type Definition", "Function Prototype"]:
-            variables.append(statement)
-        #End if
-
-    #End for
-    
-    #End Step 1
-
-    #Steps 2 and 3
-
-    i = 0
-    while i < len(statements):
-        if statements[i].kind == "Function Declaration":
-            declaration = statements[i].value
-            funcStatements = []
-            lbrace = 1
-            while lbrace > 0:
-                i += 1
-                
-                if statements[i].kind == "Begin Code Block":
-                    lbrace += 1
-                #End if
-
-                elif statements[i].kind == "End Code Block":
-                    lbrace -= 1
-                #End elif
-
-                else:
-                    funcStatements.append(statements[i])
-                #End else
-
-            #End while
-
-            subdivisions = []
-            lines = []
-            
-            for i in xrange(0, len(funcStatements), 2):
-                if i == len(funcStatements) - 1:
-                    lines = [funcStatements[i]]
-                #End if
-
-                else:
-                    lines = [funcStatments[i], funcStatements[i + 1]]
-                #End else
-
-                subs.append(Subdivision(lines))
-            #End for
-
-            functions.append(Function(declaration, subdivisions))
-
-        #End if
-
-    #End while
-
-    #End Steps 2 and 3
-
-    #Steps 4 and 5
-
     random.seed(key)
 
-    for function in functions:
-        function.func_id = random.randint(-2147483647, 2147483647)
+    #End Step 1
 
-        for subdivision in function.subdivisions:
-            subdivision.sub_id = random.randint(-2147483647, 2147483647)
-        #End for
+    #Step 2
+
+    for i in range(0, len(statements)):
+        if statements[i].kind == "Variable Declaration":
+            variables.append(statements.pop(i))
+        #End if
+
+        elif statements[i].kind == "Function Pointer Declaration":
+            functionPointers.append(statements.pop(i))
+        #End elif
+
+        elif statements[i].kind == "Function Prototype":
+            statements.remove(i)
+        #End elif
 
     #End for
 
-    #End Steps 4 and 5
+    #End Step 2
+
+    #Step 3
+
+    globalBlock = findBlocks(statements, 0, 0)
+
+    #End Step 3
     
-#End mangle_hard(statements):
+#End mangle(statements, key):

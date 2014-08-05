@@ -17,7 +17,11 @@
 #    along with SpaghettiPy.  If not, see <http://www.gnu.org/licenses/>.                                             
 #
 
+#Begin imports
+
 from lexer import Symbol
+
+#End imports
 
 class Statement(object):
     kind = ""

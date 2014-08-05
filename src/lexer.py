@@ -17,7 +17,11 @@
 #    along with SpaghettiPy.  If not, see <http://www.gnu.org/licenses/>.                                                     
 #
 
+#Begin imports
+
 import re
+
+#End imports
 
 class Symbol(object):
     kind = ""
