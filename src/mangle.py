@@ -44,6 +44,10 @@ class Block(object):
 #End class Block
 
 def findBlocks(statements, currentStatement, currentLevel):
+    """
+Creates a heirarchy of Blocks out of a list of Statements
+    """
+    
     block = Block()
     block.level = currentLevel
     block.beginning = currentStatement
@@ -56,6 +60,7 @@ def findBlocks(statements, currentStatement, currentLevel):
         if statements[currentStatement] == "Begin Code Block":
             block.children.append(findBlocks(statements, currentStatement + 1, currentLevel + 1))
             block.children[-1].parent = block
+            statements.append(Statement("BREAK", "Break at statement " + str(currentStatement), statements[currentStatement].line))
             currentStatement = block.children[-1].end + 1
         #End if
 
@@ -68,6 +73,42 @@ def findBlocks(statements, currentStatement, currentLevel):
     #End while
         
 #End findBlocks(statements, currentStatement, currentLevel, blocksSoFar):
+
+def subdivide(parent):
+    """
+Creates Subdivisions out of a heirarchy of Blocks
+    """
+    
+    if len(parent.children) > 0:
+        for child in parent.children:
+            subdivide(child)
+        #End for
+
+    #End if
+
+    for i in range(0, len(parent.statements), 2):
+        subdivision = Subdivision
+        subdivision.statements.append(parent.statements[i])
+        if i != len(parent.statements) - 1:
+            subdivision.statements.append(parent.statements[i + 1])
+        #End if
+        
+        parent.subvisions.append(subdivision)
+        if len(parent.subdivisions) > 1:
+            parent.subdivisions[-2].nextSub = parent.subdivisions[-1]
+        #End if
+
+    #End for
+    
+#End subdivide(parent)
+
+def link(parent):
+    """
+Links subdivided Blocks together
+    """
+
+    
+#End link(parent)
 
 """
 Overview:
@@ -85,24 +126,15 @@ Overview:
 12) Change all function pointers to their IDs
 """
 def mangle(statements, key):
-    #Various lists for use later
-
-    variables = []
-    
-    functionPointers = []
-
-    globalBlock
-    
-    newStatements = []
-    
-    #Step 1
+    """
+Mangles a list of Statements according to the above algorithm
+    """
 
     random.seed(key)
 
-    #End Step 1
-
-    #Step 2
-
+    variables = []
+    functionPointers = []
+    
     for i in range(0, len(statements)):
         if statements[i].kind == "Variable Declaration":
             variables.append(statements.pop(i))
@@ -118,12 +150,8 @@ def mangle(statements, key):
 
     #End for
 
-    #End Step 2
-
-    #Step 3
-
     globalBlock = findBlocks(statements, 0, 0)
 
-    #End Step 3
-    
+    subdivide(globalBlock)
+
 #End mangle(statements, key):

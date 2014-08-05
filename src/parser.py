@@ -44,11 +44,11 @@ Parses a list of symbols and returns a list of statements
     
     try:
         while True:
-            print ("%i: %s" % (i, symbols[i].kind))
             if symbols[i].kind == "$m": #Statement is a macro
                 statements.append(Statement("Macro", symbols[i].value, currentLine))
                 currentLine += 1
             #End if
+            
             if symbols[i].kind == "$i": #This is a reassignment, function call, or struct member access call
                 
                 statement = ""
