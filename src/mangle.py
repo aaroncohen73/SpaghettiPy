@@ -106,9 +106,39 @@ def link(parent):
     """
 Links subdivided Blocks together
     """
-
     
+    currentChild = 0
+    for i in xrange(0, len(parent.subdivisions)):
+        if parent.subdivisions[i].statements[0].kind is "BREAK":
+            parent.subdivisions[i-1].nextSub = parent.children[currentChild].subdivsions[0]
+            parent.children[currentChild].subdivisions[-1].nextSub = parent.subdivisions[i]
+            link(parent.children[currentChild++])
+        #End if
+
+        elif parent.subdivisions[i].statements[1].kind is "BREAK":
+            parent.subdivisions[i].nextSub = parent.children[currentChild].subdivisions[0]
+            parent.children[currentChild].subdivisions[-1].nextSub = parent.subdivisions[i + 1]
+            link(parent.children[currentChild++])
+        #End elif
+
+    #End for
+        
 #End link(parent)
+
+def randomize(parent):
+    """
+Generates random IDs for blocks and subdivisions
+    """
+
+    for subdivision in parent.subdivisions:
+        subdivision.subID = random.randint(0x0, 0xFFFFFFFF)
+    #End for
+
+    for child in parent.children:
+        randomize(child)
+    #End for
+
+#End randomize(parent)
 
 """
 Overview:
@@ -116,11 +146,9 @@ Overview:
 2) Put all variable declarations and function pointers into a new list, and remove prototypes
 3) Turn the statements into blocks of code
 4) Turn the code inside the blocks into subdivisions of two statements each
-5) Generate the boilerplate code to make constructs such as conditionals work.
+5) Link the subdivisions between blocks
 6) Give each subdivision and block a random ID
-7) Check for collisions (NOTE: Boilerplate can take up several IDs)
-8) Link each subdivision and block to the next
-9) Turn the boilerplate for the blocks into regular subdivisions and link those appropriately
+7) 
 10) Rename all the variables after their original scope (Ex: variablename__global or variablename__function1__for__2)
 11) Give all external functions their own IDs and make calls to them subdivisions
 12) Change all function pointers to their IDs
@@ -153,5 +181,8 @@ Mangles a list of Statements according to the above algorithm
     globalBlock = findBlocks(statements, 0, 0)
 
     subdivide(globalBlock)
+    link(globalBlock)
+
+    randomize(globalBlock)
 
 #End mangle(statements, key):
