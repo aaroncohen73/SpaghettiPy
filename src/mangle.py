@@ -33,7 +33,7 @@ class Subdivision(object):
 #End class Subdivision
 
 class Block(object):
-    declaration = None
+    declaration = ""
     statements = []
     subdivisions = []
     children = []
@@ -54,22 +54,22 @@ Creates a heirarchy of Blocks out of a list of Statements
     block.beginning = currentStatement
 
     if currentLevel > 0:
-        block.declaration = statements[currentStatement - 2]
+        block.declaration = statements[currentStatement - 2].plaintext
     #End if
 
     else:
-        block.declaration = Statement("GLOBAL SCOPE", "//", 0)
+        block.declaration = "GLOBAL SCOPE"
     #End else
     
     while True:
-        if statements[currentStatement] == "Begin Code Block":
+        if statements[currentStatement],kind == "Begin Code Block":
             block.children.append(findBlocks(statements, currentStatement + 1, currentLevel + 1))
             block.children[-1].parent = block
             statements.append(Statement("BREAK", "Break at statement " + str(currentStatement), statements[currentStatement].line))
             currentStatement = block.children[-1].end + 1
         #End if
 
-        elif statements[currentStatement] == "End Code Block" or currentStatement == len(statements):
+        elif statements[currentStatement].kind == "End Code Block" or currentStatement == len(statements):
             block.end = currentStatement
             return block
         #End elif
@@ -118,12 +118,14 @@ Links subdivided Blocks together
         if parent.subdivisions[i].statements[0].kind is "BREAK":
             parent.subdivisions[i-1].nextSub = parent.children[currentChild].subdivsions[0]
             parent.children[currentChild].subdivisions[-1].nextSub = parent.subdivisions[i]
+            parent.subdivisions[i].statements.pop(0)
             link(parent.children[currentChild++])
         #End if
 
         elif parent.subdivisions[i].statements[1].kind is "BREAK":
             parent.subdivisions[i].nextSub = parent.children[currentChild].subdivisions[0]
             parent.children[currentChild].subdivisions[-1].nextSub = parent.subdivisions[i + 1]
+            parent.subdivisions[i].statements.pop(1)
             link(parent.children[currentChild++])
         #End elif
 
@@ -146,6 +148,24 @@ Generates random IDs for blocks and subdivisions
 
 #End randomize(parent)
 
+def deriveSource(parent):
+    """
+Takes the linked block heirarchy and outputs it into a string (Which it returns)
+    """
+
+    newSource = ""
+    
+    for subdivision in parent.subdivisions:
+        
+    #End for
+
+    for child in parent.children:
+        newSource += deriveSource(child)
+    #End for
+
+    return newSource
+#End deriveSource(parent)
+
 """
 Overview:
 1) Make the key the random seed
@@ -154,8 +174,9 @@ Overview:
 4) Turn the code inside the blocks into subdivisions of two statements each
 5) Link the subdivisions between blocks
 6) Give each subdivision and block a pseudorandom ID
-7) Rename all the variables and function pointers after their original scope, then make them global
+7) Rename all the variables after their original scope, then make them global
 8) Print the new heirarchy into a string, and return it
+9) Do a regex search and replace previous instances of variables with their new versions
 """
 def mangle(statements, key):
     """
@@ -186,7 +207,10 @@ Mangles a list of Statements according to the above algorithm
 
     subdivide(globalBlock)
     link(globalBlock)
-
     randomize(globalBlock)
+
+    #Variable Stuff
+    
+    newSource += deriveSource(globalBlock)
 
 #End mangle(statements, key):
