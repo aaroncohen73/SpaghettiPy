@@ -221,7 +221,7 @@ Parses a list of symbols and returns a list of statements
             #end elif
 
             elif symbols[i].kind == "$c": #This is a conditional branching statement
-                if symbols[i].value == "case":
+                if symbols[i].value == "case" or symbols[i].value == "default":
                     statement = symbols[i : i + 2].value.join(" ")
                     i += 2
                 #End if
@@ -255,6 +255,10 @@ Parses a list of symbols and returns a list of statements
 
                 statements.append(Statement("Conditional Branching Statement", statement, currentLine))
 
+                if "case" in statements[-1].value or "default" in statements[-1].value:
+                    statements.append(Statement("Begin Code Block", "{", ++currentLine))
+                #End if
+                
                 currentLine += 1
             #end elif
 
