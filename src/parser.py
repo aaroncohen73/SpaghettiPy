@@ -257,6 +257,29 @@ Parses a list of symbols and returns a list of statements
 
                 if "case" in statements[-1].value or "default" in statements[-1].value:
                     statements.append(Statement("Begin Code Block", "{", ++currentLine))
+
+                    i += 1
+                    lbrace = 0
+                    caseSymbols = []
+                    
+                    while True:
+                        if symbols[i].value == "{":
+                            lbrace += 1
+                        #End if
+
+                        elif symbols[i].value == "}":
+x                            lbrace -= 1
+                        #End elif
+
+                        if symbols[i].value == "break" and lbrace == 0:
+                            break
+                        #End if
+
+                        caseSymbols += symbols[i]
+                    #End while
+
+                    statements.append(parse(caseSymbols))
+                    statements.append("End Code Block", "}", ++currentLine))
                 #End if
                 
                 currentLine += 1

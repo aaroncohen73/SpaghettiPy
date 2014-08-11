@@ -27,6 +27,7 @@ import parser
 
 class Subdivision(object):
     statements = []
+    parentBlock = None
     subID = -1
     nextSub = None
 #End class Subdivision
@@ -43,8 +44,6 @@ class Block(object):
     end = 0
 #End class Block
 
-boil
-
 def findBlocks(statements, currentStatement, currentLevel):
     """
 Creates a heirarchy of Blocks out of a list of Statements
@@ -57,6 +56,10 @@ Creates a heirarchy of Blocks out of a list of Statements
     if currentLevel > 0:
         block.declaration = statements[currentStatement - 2]
     #End if
+
+    else:
+        block.declaration = Statement("GLOBAL SCOPE", "//", 0)
+    #End else
     
     while True:
         if statements[currentStatement] == "Begin Code Block":
@@ -89,7 +92,8 @@ Creates Subdivisions out of a heirarchy of Blocks
     #End if
 
     for i in range(0, len(parent.statements), 2):
-        subdivision = Subdivision
+        subdivision = Subdivision()
+        subdivision.parentBlock = parent
         subdivision.statements.append(parent.statements[i])
         if i != len(parent.statements) - 1:
             subdivision.statements.append(parent.statements[i + 1])
@@ -149,12 +153,9 @@ Overview:
 3) Turn the statements into blocks of code
 4) Turn the code inside the blocks into subdivisions of two statements each
 5) Link the subdivisions between blocks
-6) Give each subdivision and block a random ID
-7) Generate boilerplate to make constructs such as loops and conditionals work
-8) Link the boilerplate into the main heirarchy
-10) Rename all the variables after their original scope (Ex: variablename__global or variablename__function1__for__2)
-11) Give all external functions their own IDs and make calls to them subdivisions
-12) Change all function pointers to their IDs
+6) Give each subdivision and block a pseudorandom ID
+7) Rename all the variables and function pointers after their original scope, then make them global
+8) Print the new heirarchy into a string, and return it
 """
 def mangle(statements, key):
     """
