@@ -43,6 +43,8 @@ class Block(object):
     end = 0
 #End class Block
 
+boil
+
 def findBlocks(statements, currentStatement, currentLevel):
     """
 Creates a heirarchy of Blocks out of a list of Statements
@@ -148,7 +150,8 @@ Overview:
 4) Turn the code inside the blocks into subdivisions of two statements each
 5) Link the subdivisions between blocks
 6) Give each subdivision and block a random ID
-7) 
+7) Generate boilerplate to make constructs such as loops and conditionals work
+8) Link the boilerplate into the main heirarchy
 10) Rename all the variables after their original scope (Ex: variablename__global or variablename__function1__for__2)
 11) Give all external functions their own IDs and make calls to them subdivisions
 12) Change all function pointers to their IDs
