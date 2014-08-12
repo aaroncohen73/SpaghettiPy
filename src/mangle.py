@@ -194,7 +194,7 @@ Mangles a list of Statements according to the above algorithm
         #End if
 
         elif statements[i].kind == "Function Pointer Declaration":
-            functionPointers.append(statements.pop(i))
+            statements.remove(i)
         #End elif
 
         elif statements[i].kind == "Function Prototype":
@@ -209,7 +209,10 @@ Mangles a list of Statements according to the above algorithm
     link(globalBlock)
     randomize(globalBlock)
 
-    #Variable Stuff
+    newSource = ""
+    for variable in variables:
+        
+    #End for
     
     newSource += deriveSource(globalBlock)
 
